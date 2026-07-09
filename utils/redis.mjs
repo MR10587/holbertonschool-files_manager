@@ -3,17 +3,14 @@ import redis from "redis";
 
 class RedisClient {
     constructor() {
-        this.client = redis.createClient();
-    
-        this.client.on("error", (err) => {
-          console.error(err);
-        });
-      }
-    
+        this.client = createClient();
+        this.client.on("error", err => console.log(err));
+        this.client.connect().catch(console.error);
+    }
 
     isAlive() {
-        return this.client.connected;
-    }
+        return this.client.isOpen;
+    } 
     
     async get(key) {
         return await this.client.get(key);
