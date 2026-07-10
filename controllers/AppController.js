@@ -11,5 +11,5 @@ export const getStats = function (req, res) {
   const nbUsers = dbClient.nbUsers;
   const nbFiles = dbClient.nbFiles;
 
-  res.status(200).json({ users: nbUsers, files: nbFiles });
+  res.status(200).json({ "users": nbUsers, "files": nbFiles });
 };
