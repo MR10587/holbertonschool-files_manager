@@ -2,14 +2,14 @@ import dbClient from "../utils/db.mjs";
 import redisClient from "../utils/redis.mjs";
 
 export const getStatus = function (req, res) {
-  if (dbClient.isAlive && redisClient.isAlive) {
-    res.status(200).json({ redis: true, db: true });
-  }
+  res
+    .status(200)
+    .json({ "redis": redisClient.isAlive(), "db": dbClient.isAlive() });
 };
 
-export const getStats = function (req, res) {
-  const nbUsers = dbClient.nbUsers;
-  const nbFiles = dbClient.nbFiles;
+export const getStats = async function (req, res) {
+  const nbUsers = await dbClient.nbUsers();
+  const nbFiles = await dbClient.nbFiles();
 
-  res.status(200).json({ "users": nbUsers, "files": nbFiles });
+  res.status(200).json({ users: nbUsers, files: nbFiles });
 };
