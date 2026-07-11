@@ -19,6 +19,12 @@ export const getConnect = async (req, res) => {
 
   const [email, password] = decodedString.split(':');
 
+  if (!email || !password) {
+    return res.status(401).json({
+      error: 'Unauthorized',
+    });
+  }
+
   const hashedPassword = crypto
     .createHash('sha1')
     .update(password)
