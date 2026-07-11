@@ -1,7 +1,7 @@
-import dbClient from '../utils/db';
 import crypto from 'crypto';
+import dbClient from '../utils/db';
 
-export const postNew = async function (req, res) {
+export default postNew = async (req, res) => {
   const usersCollection = dbClient.db.collection('users');
   const { email, password } = req.body;
 
