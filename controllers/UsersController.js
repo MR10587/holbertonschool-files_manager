@@ -46,7 +46,7 @@ export const getMe = async (req, res) => {
 
   if (!userId) {
     return res.status(401).json({
-      error: 'Unauthorized' 
+      error: 'Unauthorized',
     });
   }
 

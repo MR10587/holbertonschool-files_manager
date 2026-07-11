@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
+import { constants } from 'http2';
 
 export const getConnect = async (req, res) => {
   const usersCollection = dbClient.db.collection('users');
@@ -15,7 +16,7 @@ export const getConnect = async (req, res) => {
   }
 
   const baseToDecode = authHeader.split(' ')[1];
-  let decodedString = Buffer.from(baseToDecode, 'base64').toString('utf8');
+  const decodedString = Buffer.from(baseToDecode, 'base64').toString('utf8');
 
   const [email, password] = decodedString.split(':');
 
