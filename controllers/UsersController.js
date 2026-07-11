@@ -1,7 +1,11 @@
 import crypto from 'crypto';
+import mongodb from 'mongodb';
 import dbClient from '../utils/db';
+import redisClient from '../utils/redis';
 
-const postNew = async (req, res) => {
+const { ObjectId } = mongodb;
+
+export const postNew = async (req, res) => {
   const usersCollection = dbClient.db.collection('users');
   const { email, password } = req.body;
 
@@ -34,4 +38,30 @@ const postNew = async (req, res) => {
   });
 };
 
-export default postNew;
+export const getMe = async (req, res) => {
+  const usersCollection = dbClient.db.collection('users');
+  const token = req.header('X-Token');
+
+  const userId = await redisClient.get(`auth_${token}`);
+
+  if (!userId) {
+    return res.status(401).json({
+      error: 'Unauthorized' 
+    });
+  }
+
+  const user = await usersCollection.findOne({
+    _id: new ObjectId(userId),
+  });
+
+  if (!user) {
+    return res.status(401).json({
+      error: 'Unauthorized',
+    });
+  }
+
+  return res.status(200).json({
+    email: user.email,
+    id: user._id.toString(),
+  });
+};
