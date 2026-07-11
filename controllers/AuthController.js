@@ -2,7 +2,6 @@ import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
-import { constants } from 'http2';
 
 export const getConnect = async (req, res) => {
   const usersCollection = dbClient.db.collection('users');
