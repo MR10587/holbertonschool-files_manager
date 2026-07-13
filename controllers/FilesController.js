@@ -10,7 +10,7 @@ const { ObjectId } = mongodb;
 
 const FOLDER_PATH = process.env.FOLDER_PATH || '/tmp/files_manager';
 
-export const postUpload = async (req, res) => {
+const postUpload = async (req, res) => {
   const token = req.header('X-Token');
   const userId = await redisClient.get(`auth_${token}`);
 
@@ -20,7 +20,9 @@ export const postUpload = async (req, res) => {
     });
   }
 
-  const { name, type, parentId = 0, isPublic = false, data } = req.body;
+  const { 
+    name, type, parentId = 0, isPublic = false, data 
+  } = req.body;
 
   if (!name) {
     return res.status(400).json({
@@ -110,3 +112,5 @@ export const postUpload = async (req, res) => {
     parentId,
   });
 };
+
+export default postUpload;
