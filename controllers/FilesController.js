@@ -1,53 +1,112 @@
-import dbClient from "../utils/db";
-import redisClient from "../utils/redis";
+import fs from 'fs/promises';
+import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
+import mongodb from 'mongodb';
 
-const postUpload = async (req, res) => {
-  const filesCollection = dbClient.db.collection("files");
-  const token = req.header("X-Token");
+import dbClient from '../utils/db';
+import redisClient from '../utils/redis';
 
-  const user = await redisClient.get(`auth_${token}`);
+const { ObjectId } = mongodb;
 
-  if (!user) {
+const FOLDER_PATH = process.env.FOLDER_PATH || '/tmp/files_manager';
+
+export const postUpload = async (req, res) => {
+  const token = req.header('X-Token');
+  const userId = await redisClient.get(`auth_${token}`);
+
+  if (!userId) {
     return res.status(401).json({
-      error: "Unauthorized",
+      error: 'Unauthorized',
     });
   }
 
-  const types = ["folder", "image", "file"];
-
-  const { name, type, parentId, isPublic, data } = req.body;
+  const { name, type, parentId = 0, isPublic = false, data } = req.body;
 
   if (!name) {
     return res.status(400).json({
-      error: "Missing name",
+      error: 'Missing name',
     });
   }
 
-  if (!type || !types.includes(type)) {
+  if (!type || !['folder', 'file', 'image'].includes(type)) {
     return res.status(400).json({
-      error: "Missing type",
+      error: 'Missing type',
     });
   }
 
-  if (type != folder && !data) {
+  if (type !== 'folder' && !data) {
     return res.status(400).json({
-      error: "Missing  data",
+      error: 'Missing data',
     });
   }
 
-  if (parentId) {
-    if (!filesCollection.findOne(parentId)) {
+  const filesCollection = dbClient.db.collection('files');
+
+  if (parentId !== 0) {
+    const parent = await filesCollection.findOne({
+      _id: new ObjectId(parentId),
+    });
+
+    if (!parent) {
       return res.status(400).json({
-        error: "Parent not found",
+        error: 'Parent not found',
       });
-    } else if (filesCollection.findOne(parentId).type != "folder") {
+    }
+
+    if (parent.type !== 'folder') {
       return res.status(400).json({
-        error: "Parent is not a folder",
+        error: 'Parent is not a folder',
       });
     }
   }
 
-  filesCollection.insertOne({
-    
-  })
+  if (type === 'folder') {
+    const doc = {
+      userId,
+      name,
+      type,
+      isPublic,
+      parentId,
+    };
+
+    const result = await filesCollection.insertOne(doc);
+
+    return res.status(201).json({
+      id: result.insertedId.toString(),
+      userId,
+      name,
+      type,
+      isPublic,
+      parentId,
+    });
+  }
+
+  await fs.mkdir(FOLDER_PATH, { recursive: true });
+
+  const filename = uuidv4();
+  const localPath = path.join(FOLDER_PATH, filename);
+
+  const fileBuffer = Buffer.from(data, 'base64');
+
+  await fs.writeFile(localPath, fileBuffer);
+
+  const doc = {
+    userId,
+    name,
+    type,
+    isPublic,
+    parentId,
+    localPath,
+  };
+
+  const result = await filesCollection.insertOne(doc);
+
+  return res.status(201).json({
+    id: result.insertedId.toString(),
+    userId,
+    name,
+    type,
+    isPublic,
+    parentId,
+  });
 };
