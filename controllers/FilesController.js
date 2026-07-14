@@ -20,8 +20,12 @@ const postUpload = async (req, res) => {
     });
   }
 
-  const { 
-    name, type, parentId = 0, isPublic = false, data 
+  const {
+    name, 
+    type, 
+    parentId = 0, 
+    isPublic = false, 
+    data
   } = req.body;
 
   if (!name) {
