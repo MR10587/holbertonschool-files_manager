@@ -133,3 +133,23 @@ export const getShow = async (req, res) => {
 
   return res.status(200).json(file)
 };
+
+export const getIndex = async(req, res) => {
+  const token = req.header("X-Token");
+  const user = await redisClient.get(`auth_${token}`);
+  const filesCollection = dbClient.db.collection("files");
+  let parentId = req.query.parentId;
+  const pages = req.query.pages;
+
+  if (!user) {
+    return res.status(401).json({
+      error: "Unauthorized",
+    });
+  }
+
+  if (!parentId) {
+    parentId = 0;
+  }
+
+  return filesCollection.findOne({ parentId }) || [];
+}
