@@ -123,7 +123,7 @@ export const getShow = async (req, res) => {
     });
   }
 
-  const file = filesCollection.findOne({ id });
+  const file = await filesCollection.findOne({ id });
 
   if (!file) {
     return res.status(404).json({
