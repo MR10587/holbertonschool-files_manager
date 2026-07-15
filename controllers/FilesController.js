@@ -151,5 +151,5 @@ export const getIndex = async(req, res) => {
     parentId = 0;
   }
 
-  return filesCollection.findOne({ parentId }) || [];
+  return await filesCollection.findOne({ parentId }) || [];
 }
