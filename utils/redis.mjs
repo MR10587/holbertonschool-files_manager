@@ -1,12 +1,20 @@
 import redis from 'redis';
+import { promisify } from 'util';
 
 class RedisClient {
   constructor() {
-    this.client = redis.createClient();
+    this.client = redis.createClient({
+      host: process.env.REDIS_HOST || 'localhost',
+      port: process.env.REDIS_PORT || 6379,
+    });
 
     this.client.on('error', (err) => {
-      console.error(err);
+      console.log(`Redis client not connected to the server: ${err.message}`);
     });
+
+    this.getAsync = promisify(this.client.get).bind(this.client);
+    this.setAsync = promisify(this.client.set).bind(this.client);
+    this.delAsync = promisify(this.client.del).bind(this.client);
   }
 
   isAlive() {
@@ -14,36 +22,15 @@ class RedisClient {
   }
 
   async get(key) {
-    return new Promise((resolve, reject) => {
-      this.client.get(key, (err, value) => {
-        if (err) {
-          return reject(err);
-        }
-        return resolve(value);
-      });
-    });
+    return this.getAsync(key);
   }
 
   async set(key, value, duration) {
-    return new Promise((resolve, reject) => {
-      this.client.setex(key, duration, value, (err, reply) => {
-        if (err) {
-          return reject(err);
-        }
-        return resolve(reply);
-      });
-    });
+    return this.setAsync(key, value, 'EX', duration);
   }
 
   async del(key) {
-    return new Promise((resolve, reject) => {
-      this.client.del(key, (err, reply) => {
-        if (err) {
-          return reject(err);
-        }
-        return resolve(reply);
-      });
-    });
+    return this.delAsync(key);
   }
 }
 

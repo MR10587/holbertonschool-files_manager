@@ -2,28 +2,27 @@ import mongodb from 'mongodb';
 
 const { MongoClient } = mongodb;
 
-const host = process.env.DB_HOST || 'localhost';
-const port = process.env.DB_PORT || 27017;
-const database = process.env.DB_DATABASE || 'files_manager';
-
 class DBClient {
   constructor() {
-    this.client = new MongoClient(`mongodb://${host}:${port}`, {
-      useUnifiedTopology: true,
-    });
+    const host = process.env.DB_HOST || 'localhost';
+    const port = process.env.DB_PORT || 27017;
+    const database = process.env.DB_DATABASE || 'files_manager';
 
-    this.client.connect((err) => {
-      if (err) {
-        console.error(err);
-        return;
-      }
+    this.connected = false;
+    this.db = null;
 
-      this.db = this.client.db(database);
-    });
+    MongoClient.connect(`mongodb://${host}:${port}`, { useUnifiedTopology: true })
+      .then((client) => {
+        this.db = client.db(database);
+        this.connected = true;
+      })
+      .catch(() => {
+        this.connected = false;
+      });
   }
 
   isAlive() {
-    return this.client.isConnected();
+    return this.connected;
   }
 
   async nbUsers() {

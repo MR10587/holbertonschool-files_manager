@@ -1,19 +1,22 @@
-import express from 'express';
-import { getStatus, getStats } from '../controllers/AppController';
-import { postNew, getMe } from '../controllers/UsersController';
-import { getConnect, getDisconnect } from '../controllers/AuthController';
-import { postUpload, getShow, getIndex } from '../controllers/FilesController';
+import { Router } from 'express';
+import AppController from '../controllers/AppController';
+import UsersController from '../controllers/UsersController';
+import AuthController from '../controllers/AuthController';
+import FilesController from '../controllers/FilesController';
 
-const router = express.Router();
+const router = Router();
 
-router.get('/status', getStatus);
-router.get('/stats', getStats);
-router.get('/connect', getConnect);
-router.get('/disconnect', getDisconnect);
-router.get('/users/me', getMe);
-router.post('/users', postNew);
-router.post('/files', postUpload);
-router.get('/files/:id', getShow);
-router.get('/files', getIndex);
+router.get('/status', AppController.getStatus);
+router.get('/stats', AppController.getStats);
+router.post('/users', UsersController.postNew);
+router.get('/connect', AuthController.getConnect);
+router.get('/disconnect', AuthController.getDisconnect);
+router.get('/users/me', UsersController.getUsersMe);
+router.post('/files', FilesController.postUpload);
+router.get('/files', FilesController.getIndex);
+router.get('/files/:id/data', FilesController.getFile);
+router.get('/files/:id', FilesController.getShow);
+router.put('/files/:id/publish', FilesController.putPublish);
+router.put('/files/:id/unpublish', FilesController.putUnpublish);
 
 export default router;
