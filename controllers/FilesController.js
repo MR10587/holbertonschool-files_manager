@@ -113,11 +113,11 @@ export const postUpload = async (req, res) => {
 
 export const getShow = async (req, res) => {
   const token = req.header("X-Token");
-  const user = await redisClient.get(`auth_${token}`);
-  const id = req.params.id;
+  const userId = await redisClient.get(`auth_${token}`);
+  const { id } = req.params;
   const filesCollection = dbClient.db.collection("files");
 
-  if (!user) {
+  if (!userId) {
     return res.status(401).json({
       error: "Unauthorized",
     });
@@ -125,7 +125,7 @@ export const getShow = async (req, res) => {
 
   const file = await filesCollection.findOne({
     _id: new ObjectId(id),
-    userId: user,
+    userId,
   });
 
   if (!file) {
@@ -134,36 +134,53 @@ export const getShow = async (req, res) => {
     });
   }
 
-  return res.status(200).json(file);
+  return res.status(200).json({
+    id: file._id.toString(),
+    userId: file.userId,
+    name: file.name,
+    type: file.type,
+    isPublic: file.isPublic,
+    parentId: file.parentId,
+  });
 };
 
 export const getIndex = async (req, res) => {
   const token = req.header("X-Token");
-  const user = await redisClient.get(`auth_${token}`);
+  const userId = await redisClient.get(`auth_${token}`);
   const filesCollection = dbClient.db.collection("files");
-  let parentId = req.query.parentId;
-  const page = Number(req.query.page || 0);
+  const { parentId, page } = req.query;
+  const pageNum = Number(page || 0);
 
-  if (!user) {
+  if (!userId) {
     return res.status(401).json({
       error: "Unauthorized",
     });
   }
 
-  if (!parentId) {
-    parentId = 0;
-  } else {
-    parentId = new ObjectId(parentId);
+  let queryParentId = 0;
+  if (parentId && parentId !== "0") {
+    queryParentId = new ObjectId(parentId);
+  } else if (parentId === "0") {
+    queryParentId = 0;
   }
 
   const files = await filesCollection
     .find({
-      userId: user,
-      parentId,
+      userId,
+      parentId: queryParentId,
     })
-    .skip(page * 20)
+    .skip(pageNum * 20)
     .limit(20)
     .toArray();
 
-  return res.status(200).json(files);
+  return res.status(200).json(
+    files.map((file) => ({
+      id: file._id.toString(),
+      userId: file.userId,
+      name: file.name,
+      type: file.type,
+      isPublic: file.isPublic,
+      parentId: file.parentId,
+    }))
+  );
 };

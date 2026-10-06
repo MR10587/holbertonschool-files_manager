@@ -14,6 +14,6 @@ router.get('/users/me', getMe);
 router.post('/users', postNew);
 router.post('/files', postUpload);
 router.get('/files/:id', getShow);
-router.get('files', getIndex);
+router.get('/files', getIndex);
 
 export default router;
